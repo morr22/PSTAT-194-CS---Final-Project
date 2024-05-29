@@ -1,0 +1,50 @@
+---
+title: "PSTAT 194CS: Final Project"
+author: "Daneiel Yalew, Matthew Orr, Phillip Tezaur"
+date: "2024-05-14"
+output: pdf_document
+---
+
+\newpage
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=20)
+knitr::opts_chunk$set(fig.height=10)
+```
+
+
+```{r warning=FALSE}
+library(igraph)
+library(Matrix)
+```
+
+
+## 1 Import the data
+
+```{r}
+# read in the raw edgelist
+epinions.data <- read.table("./data/soc-Epinions1.txt", sep="\t", header=FALSE, 
+                            col.names=c('from', 'to'), skip=4)
+epinions.data
+```
+
+```{r}
+epinions <- graph_from_data_frame(epinions.data, directed=TRUE)
+```
+
+```{r}
+epinions.adj <- as_adj(epinions)
+image(Matrix(epinions.adj))
+```
+
+
+```{r fig.width=20, fig.height=10}
+plot(epinions,
+     layout=layout_with_fr,
+     vertex.size=2,
+     # === vertex label properties
+     vertex.label=NA,
+     # === edge properties
+     edge.arrow.size=0.5)
+```

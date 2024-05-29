@@ -1,0 +1,26 @@
+---
+title: "Final Project Report"
+author: "Daneiel Yalew, Matthew Orr, Phillip Tezaur"
+date: "2024-05-29"
+output: pdf_document
+documentclass: report
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## 1 Introduction
+
+## 2 Methodology
+
+## 3 Analysis
+
+## 4 Results
+
+## 5 Conclusion
+
+## 6 References
+
+## 7 Appendix
