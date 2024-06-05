@@ -17,27 +17,264 @@ knitr::opts_chunk$set(fig.height=10)
 ```{r warning=FALSE}
 library(igraph)
 library(Matrix)
+
+# default margins
+def_marg <- c(5.1, 4.1, 4.1, 2.1)
+# no margins
+no_marg <- c(0, 0, 0, 0)
 ```
 
-
-## 1 Import the data
+## Import data and convert to igraph object
 
 ```{r}
 # read in the raw edgelist
 epinions.data <- read.table("./data/soc-Epinions1.txt", sep="\t", header=FALSE, 
                             col.names=c('from', 'to'), skip=4)
-epinions.data
+head(epinions.data)
 ```
 
 ```{r}
 epinions <- graph_from_data_frame(epinions.data, directed=TRUE)
+epinions
 ```
+
+## Get and plot induced subgraphs
+
+```{r}
+set.seed(999)
+
+plot_subnetwork <- function(sub_network) {
+  plot(sub_network,
+     vertex.size=2,
+     # === vertex label properties
+     # === edge properties
+     edge.arrow.size=0.5)
+}
+
+sub.network1 <- induced_subgraph(epinions, sample(V(epinions), 200))
+sub.network2 <- induced_subgraph(epinions, sample(V(epinions), 200))
+sub.network3 <- induced_subgraph(epinions, sample(V(epinions), 200))
+sub.network4 <- induced_subgraph(epinions, sample(V(epinions), 200))
+
+par(mar=no_marg, mfrow=c(2,2))
+
+plot_subnetwork(sub.network1)
+text(-1, 1,"Sub-Network 1",cex=1.5,font=1)
+plot_subnetwork(sub.network2)
+text(-1, 1,"Sub-Network 2",cex=1.5,font=1)
+plot_subnetwork(sub.network3)
+text(-1, 1,"Sub-Network 3",cex=1.5,font=1)
+# text(-1.75, -1, ~italic("Figure 1"), cex=1.5, font=1)
+plot_subnetwork(sub.network4)
+text(-1, 1,"Sub-Network 4",cex=1.5,font=1)
+
+par(mar=def_marg, mfrow=c(1,1))
+```
+
+## Plot the Adjacency Matrix
 
 ```{r}
 epinions.adj <- as_adj(epinions)
 image(Matrix(epinions.adj))
 ```
 
+## Community Detection and plotting Communities
+
+```{r}
+# NB: cluster_fast_greedy() only operates on undirected graphs
+e.community <- cluster_fast_greedy(as.undirected(epinions))
+e.community
+
+cat("Length:", length(e.community), "\n")
+# cat("Sizes:", sizes(e.community), "\n")
+cat("Modularity:", modularity(e.community), "\n")
+```
+
+```{r}
+community_sizes <- table(e.community$membership)
+sorted_communities <- sort(community_sizes, decreasing = TRUE)
+sorted_communities[1:6]
+```
+
+```{r}
+# Plotting communities
+
+V(epinions)$community <- e.community$membership
+
+# split vertecies by group membership
+groups <- split(V(epinions), e.community$membership)
+
+mycomcols <- c("black", "#D3D3D3", "#88398A", "white", "#562457")
+mylabcols <- c("white", "black", "white", "black", "white")
+
+V(epinions)$color <- mycomcols[V(epinions)$community]
+V(epinions)$label.color <- mylabcols[V(epinions)$community]
+
+par(mar=no_marg)
+layout <- layout_with_fr(epinions)
+plot(epinions,
+     layout=layout,
+     vertex.size = 5,
+     vertex.color = V(epinions)$color, 
+     vertex.label.color = V(epinions)$label.color, 
+     vertex.label.family = "Helvetica",
+     vertex.frame.color = "#88398A",
+     vertex.label.cex= 0.5,
+     edge.color = "gray60",
+     edge.arrow.size = 0.2,
+     edge.curved = 0.5,
+     mark.groups = groups, 
+     mark.col="gray90", 
+     mark.border="#88398A")
+```
+
+```{r}
+# Reduce the node size and adjust edge properties for clarity
+vertex_size <- 2
+edge_width <- 0.2
+
+# Use a more scalable layout algorithm
+layout <- layout_with_fr(epinions)
+
+# Simplify coloring for the large number of communities
+n_comms <- length(unique(e.community$membership))
+set.seed(123)  # For reproducibility
+color_palette <- rainbow(n_comms)
+
+V(epinions)$color <- color_palette[V(epinions)$community]
+
+# Create the plot
+plot(epinions,
+     layout=layout,
+     vertex.size = vertex_size,
+     vertex.color = V(epinions)$color, 
+     vertex.label = NA,  # Remove labels for clarity
+     vertex.frame.color = NA,
+     edge.color = "gray80",
+     edge.width = edge_width,
+     edge.arrow.size = 0.1,
+     edge.curved = 0.1)
+```
+
+```{r}
+# Assign community membership
+V(epinions)$community <- e.community$membership
+
+# Calculate community sizes
+community_sizes <- table(e.community$membership)
+sorted_communities <- sort(community_sizes, decreasing = TRUE)
+
+# Select the 4 largest communities
+largest_communities <- names(sorted_communities)[1:4]
+
+# Filter vertices belonging to the largest communities
+largest_vertices <- V(epinions)[V(epinions)$community %in% largest_communities]
+
+# Create a subgraph of the largest communities
+subgraph <- induced_subgraph(epinions, largest_vertices)
+
+# Assign colors to the largest communities
+color_palette <- rainbow(length(largest_communities))
+V(subgraph)$color <- color_palette[as.factor(V(subgraph)$community)]
+
+# Plot the subgraph
+layout <- layout_with_fr(subgraph)
+
+plot(subgraph,
+     layout = layout,
+     vertex.size = 5,
+     vertex.color = V(subgraph)$color, 
+     vertex.label = NA,  # Remove labels for clarity
+     vertex.frame.color = NA,
+     edge.color = "gray80",
+     edge.width = 0.5,
+     edge.arrow.size = 0.2,
+     edge.curved = 0.1)
+```
+
+## Network metrics
+
+```{r}
+# sort(degree(epinions, mode='all'))
+
+mean_distance(epinions)
+
+edge_density(epinions)
+
+reciprocity(epinions)
+
+transitivity(epinions)
+
+diameter(epinions)
+
+is_connected(epinions, mode="strong")
+components(epinions, mode="strong")$no
+
+articulation_points(epinions)
+```
+
+### Degree Centrality 
+
+```{r}
+par(mar=def_marg)
+
+## NB: Non-zero value can be used for better visualization
+min_deg <- 0
+
+# In-degree
+# degree(epinions, mode="in")
+deg_in <- degree(epinions, mode="in")
+hist(deg_in[deg_in >= min_deg],
+     probability=TRUE,
+     # breaks=1:vcount(epinions)-1, 
+     main=paste("In-Degree ≥", min_deg,"histogram"),
+     xlab=paste("In-Degree ≥", min_deg))
+
+# Out-degree
+deg_out <- degree(epinions, mode="out")
+hist(deg_out[deg_out >= min_deg],
+     # breaks=1:vcount(epinions)-1, 
+     main=paste("Out-Degree ≥", min_deg,"histogram"),
+     xlab=paste("Out-Degree ≥", min_deg))
+
+# Combine in-degree and out-degree
+deg_all <- degree(epinions, mode="all")
+hist(deg_all[deg_all >= min_deg],
+     # breaks=1:vcount(epinions)-1, 
+     main=paste("All-Degree ≥", min_deg,"histogram"),
+     xlab=paste("All-Degree ≥", min_deg))
+
+```
+
+```{r}
+par(mar=no_marg)
+
+deg <- degree(epinions, mode="all")
+V(epinions)$deg <- deg
+
+# arrange by degree
+deg <- sort(deg, decreasing = T, index.return = T)
+ndxs <- deg$ix[1:6]  # Get indexes of 5 most central nodes
+
+#coloring 5 most central nodes
+V(epinions)$color[V(epinions)[ndxs]] <- "#88398A"
+
+layout <- layout_with_fr(epinions)
+plot(epinions,
+     layout=layout,
+     vertex.size = sqrt(deg$x)+1,
+     vertex.color = V(epinions)$color, 
+     vertex.label.color = "gray60", 
+     vertex.label.family = "Helvetica",
+     vertex.frame.color = "#88398A",
+     vertex.label.cex= 0.5,
+     edge.color = "gray60",
+     edge.arrow.size = 0.2,
+     edge.curved = 0.5)
+```
+
+
+## Visualizing the dataset, otherwise
 
 ```{r fig.width=20, fig.height=10}
 plot(epinions,
@@ -48,3 +285,13 @@ plot(epinions,
      # === edge properties
      edge.arrow.size=0.5)
 ```
+
+## Reorder nodes
+
+Ways to reorder:
+* Order of degree
+* etc.
+
+NB: Visualize adjacency matrix again
+
+
