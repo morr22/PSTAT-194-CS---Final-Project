@@ -277,6 +277,114 @@ plot(epinions,
      # === edge properties
      edge.arrow.size=0.5)
 ```
+```{r}
+# default margins
+def_marg <- c(5.1, 4.1, 4.1, 2.1)
+# no margins
+no_marg <- c(0, 0, 0, 0)
+# read in the raw edgelist
+epinions.data <- read.table("~/Final/soc-Epinions1.txt", sep="\t", header=FALSE, 
+                            col.names=c('from', 'to'), skip=4)
+head(epinions.data)
+epinions <- graph_from_data_frame(epinions.data, directed=TRUE)
+epinions
+deg <- degree(epinions, mode="all")
+in_deg <- degree(epinions, mode="in")
+out_deg <- degree(epinions, mode="out")
+in_top_nodes <- V(epinions)[order(in_deg, decreasing=TRUE)[1:10]]
+out_top_nodes <- V(epinions)[order(out_deg, decreasing=TRUE)[1:10]]
+top_nodes <- V(epinions)[order(deg, decreasing=TRUE)[1:10]]
+```
+
+```{r}
+# Subgraph of top nodes
+subgraph_top_nodes <- induced_subgraph(epinions, top_nodes)
+
+plot(subgraph_top_nodes,
+     vertex.size=5,
+     vertex.color="red",
+     edge.arrow.size=0.5,
+     main="Subgraph of Top 10 Nodes with Most Edges")
+```
+```{r}
+# High-out-Degree Nodes and Their Neighborhoods
+neighborhood <- ego(epinions, order=1, nodes=top_nodes)
+
+# Set up plotting layout
+par(mfrow=c(2, 5))
+
+# Plot each neighborhood
+for (i in seq_along(neighborhood)) {
+  # Extract the current neighborhood
+  subgraph <- induced_subgraph(epinions, neighborhood[[i]])
+  
+  # Set vertex sizes: larger for the central node
+  V(subgraph)$size <- ifelse(V(subgraph)$name == top_nodes[i]$name, 30, 3)
+  
+  # Set vertex colors: central node in red, others in sky blue
+  V(subgraph)$color <- ifelse(V(subgraph)$name == top_nodes[i]$name, "red", "skyblue")
+  
+  # Plot the subgraph
+  plot(subgraph,
+       vertex.size=V(subgraph)$size,
+       vertex.color=V(subgraph)$color,
+       vertex.label=NA,
+       main=paste("Neighborhood of Node", top_nodes[i]$name))
+}
+```
+```{r}
+# High-out-Degree Nodes and Their Neighborhoods
+neighborhood <- ego(epinions, order=1, nodes=in_top_nodes)
+
+# Set up plotting layout
+par(mfrow=c(2, 5))
+
+# Plot each neighborhood
+for (i in seq_along(neighborhood)) {
+  # Extract the current neighborhood
+  subgraph <- induced_subgraph(epinions, neighborhood[[i]])
+  
+  # Set vertex sizes: larger for the central node
+  V(subgraph)$size <- ifelse(V(subgraph)$name == in_top_nodes[i]$name, 30, 3)
+  
+  # Set vertex colors: central node in red, others in sky blue
+  V(subgraph)$color <- ifelse(V(subgraph)$name == in_top_nodes[i]$name, "red", "skyblue")
+  
+  # Plot the subgraph
+  plot(subgraph,
+       vertex.size=V(subgraph)$size,
+       vertex.color=V(subgraph)$color,
+       vertex.label=NA,
+       main=paste("Neighborhood of Node", in_top_nodes[i]$name))
+}
+
+```
+
+```{r}
+# High-out-Degree Nodes and Their Neighborhoods
+neighborhood <- ego(epinions, order=1, nodes=out_top_nodes)
+
+# Set up plotting layout
+par(mfrow=c(2, 5))
+
+# Plot each neighborhood
+for (i in seq_along(neighborhood)) {
+  # Extract the current neighborhood
+  subgraph <- induced_subgraph(epinions, neighborhood[[i]])
+  
+  # Set vertex sizes: larger for the central node
+  V(subgraph)$size <- ifelse(V(subgraph)$name == out_top_nodes[i]$name, 30, 3)
+  
+  # Set vertex colors: central node in red, others in sky blue
+  V(subgraph)$color <- ifelse(V(subgraph)$name == out_top_nodes[i]$name, "red", "skyblue")
+  
+  # Plot the subgraph
+  plot(subgraph,
+       vertex.size=V(subgraph)$size,
+       vertex.color=V(subgraph)$color,
+       vertex.label=NA,
+       main=paste("Neighborhood of Node", out_top_nodes[i]$name))
+}
 
 ## Reorder nodes
 
