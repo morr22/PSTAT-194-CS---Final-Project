@@ -23,7 +23,7 @@ The data processing involved was relatively straight forward. The edge-list for 
 
 ## 3 Analysis
 
-### 3.1 Induced Sub-Graphs
+### 3.1 Induced Sub-Graphs: Randomly Selected Nodes
 
 Four induced subgraphs, consisting of a random sample of 200 nodes each, are visualized below (Fig. 1). Only a small number of connections exist in each subgraph, indicating that there is weak connectivity between the nodes in each graph.
 
@@ -50,26 +50,40 @@ Each metric can be described as follows:
 
 As stated above, the `cluster_fast_greedy()` algorithm _greedily_ forms communities within the network and attempts to find subsequent nodes which fit into these "communities". In the Trust Network, over 3200 communities were found. The 5 largest communities had 24051, 18925, 9590, 902, and 898 nodes, respectively. This tells us that the 5 largest groups contain just under 75% of all of the nodes in the network.
 
-### 3.4 Adjacency Matricies
+In addition to community detection at the network level, ten nodes which had the highest degrees were analyzed using the `ego()` function provided by the `igraph` package. The `ego()` function finds neighborhoods of nodes, at the node level. The top nodes were separated into three groups, those with the most connections to them, those with the most connections from them, and those with the most connections overall. Additionally, it should be noted that only 1-degree of separation was considered in each of the neighborhoods.
 
-The initial adjacency matrix (Fig. 2) is very sparse, this is due to the fact that there are a significant amount of nodes, each with a relatively small degree.
+In plotting the neighborhoods for each of these groups (\S 4), observed were different patterns in the network layout. Some neighborhoods appeared as "linear", in a straight line, and others appeared more circular. The linear neighborhoods would appear when there are two or more distinct sub-neighborhoods that are only connected through another sub-neighborhood. Conversely, circular patterns would appear when sub-neighborhoods of the network were interconnected.
 
-_TODO: Include adjacency matrix for reordered nodes._
+### 3.4 Adjacency Matrix
+
+Due to the size and low density of the network, any adjacency matrices produced did not provide meaningful insight to the dataset (see \S 7.2 for plot).
 
 ## 4 Results
 
-* Key findings from the analysis
-* Visual and textual summaries
+Upon immediate inspection of the dataset, and more specifically the inspection of the induced subgraphs of randomly selected nodes, it became apparent that the network density was very low (Fig. 1).
 
 ```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Induced Sub-Graphs of the Trust Network.", echo=FALSE}
 library(knitr)
 include_graphics("./images/induced_subgraphs.png")
 ```
 
-```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Initial Adjacency Matrix.", echo=FALSE}
+However, this is not to indicate that there are not meaningful connections within the network.
+
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Neighborhoods of Top both In-Degree and Out-Degree Nodes", echo=FALSE}
 library(knitr)
-include_graphics("./images/raw_adjacency_matrix.png")
+# include_graphics("./images/top_nodes.png")
 ```
+
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Neighborhoods of Top In-Degree Nodes", echo=FALSE}
+library(knitr)
+# include_graphics("./images/in_top_nodes.png")
+```
+
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Neighborhoods of Top Out-Degree Nodes", echo=FALSE}
+library(knitr)
+# include_graphics("./images/out_top_nodes.png")
+```
+
 
 ## 5 Conclusion
 
@@ -78,7 +92,7 @@ include_graphics("./images/raw_adjacency_matrix.png")
 
 ## 6 References
 
-https://snap.stanford.edu/data/soc-Epinions1.html
+“Epinions Social Network.” SNAP, snap.stanford.edu/data/soc-Epinions1.html. Accessed 29 May 2024.
 
 ## 7 Appendix
 
@@ -86,4 +100,11 @@ https://snap.stanford.edu/data/soc-Epinions1.html
 
 ```{r eval=FALSE}
 
+```
+
+### 7.2 Additional Figures
+
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Induced Sub-Graphs of the Trust Network.", echo=FALSE}
+library(knitr)
+include_graphics("./images/raw_adjacency_matrix.png")
 ```

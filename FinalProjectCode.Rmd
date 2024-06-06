@@ -41,6 +41,7 @@ epinions
 ## Get and plot induced subgraphs
 
 ```{r}
+## Generating / plotting random incuded subgraphs
 set.seed(999)
 
 plot_subnetwork <- function(sub_network) {
@@ -73,6 +74,8 @@ par(mar=def_marg, mfrow=c(1,1))
 
 ## Plot the Adjacency Matrix
 
+_NB: Adjacency matrix is really sparse and we aren't going to reference it._
+
 ```{r}
 epinions.adj <- as_adj(epinions)
 image(Matrix(epinions.adj))
@@ -81,23 +84,23 @@ image(Matrix(epinions.adj))
 ## Community Detection and plotting Communities
 
 ```{r}
+## Community detection + results
 # NB: cluster_fast_greedy() only operates on undirected graphs
 e.community <- cluster_fast_greedy(as.undirected(epinions))
 e.community
 
+largest_communities_sorted <- table(sort(sizes(e.community), decreasing=TRUE))[1:5]
+
+largest_communities_names <- names(largest_communities_sorted)
+
 cat("Length:", length(e.community), "\n")
-# cat("Sizes:", sizes(e.community), "\n")
+cat("5 Largest Sizes:", largest_communities_sorted, "\n")
 cat("Modularity:", modularity(e.community), "\n")
 ```
 
-```{r}
-community_sizes <- table(e.community$membership)
-sorted_communities <- sort(community_sizes, decreasing = TRUE)
-sorted_communities[1:6]
-```
 
 ```{r}
-# Plotting communities
+# Plotting communities w/ lasso graphic
 
 V(epinions)$community <- e.community$membership
 
@@ -129,26 +132,25 @@ plot(epinions,
 ```
 
 ```{r}
-# Reduce the node size and adjust edge properties for clarity
+## Plot of all communities w/ color
 vertex_size <- 2
 edge_width <- 0.2
 
-# Use a more scalable layout algorithm
 layout <- layout_with_fr(epinions)
 
-# Simplify coloring for the large number of communities
+
 n_comms <- length(unique(e.community$membership))
 set.seed(123)  # For reproducibility
 color_palette <- rainbow(n_comms)
 
 V(epinions)$color <- color_palette[V(epinions)$community]
 
-# Create the plot
+
 plot(epinions,
      layout=layout,
      vertex.size = vertex_size,
      vertex.color = V(epinions)$color, 
-     vertex.label = NA,  # Remove labels for clarity
+     vertex.label = NA,
      vertex.frame.color = NA,
      edge.color = "gray80",
      edge.width = edge_width,
@@ -157,18 +159,8 @@ plot(epinions,
 ```
 
 ```{r}
-# Assign community membership
-V(epinions)$community <- e.community$membership
-
-# Calculate community sizes
-community_sizes <- table(e.community$membership)
-sorted_communities <- sort(community_sizes, decreasing = TRUE)
-
-# Select the 4 largest communities
-largest_communities <- names(sorted_communities)[1:4]
-
-# Filter vertices belonging to the largest communities
-largest_vertices <- V(epinions)[V(epinions)$community %in% largest_communities]
+## Plotting largest communities
+largest_vertices <- V(epinions)[V(epinions)$community %in% largest_communities_names]
 
 # Create a subgraph of the largest communities
 subgraph <- induced_subgraph(epinions, largest_vertices)
