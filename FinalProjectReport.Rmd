@@ -2,11 +2,14 @@
 title: "Final Project Report"
 author: "Daneiel Yalew, Matthew Orr, Phillip Tezaur"
 date: "2024-05-29"
-output: pdf_document
+output: 
+  pdf_document:
+    extra_dependencies: ["float"]
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "")
 ```
 
 \newpage
@@ -56,39 +59,46 @@ In plotting the neighborhoods for each of these groups (\S 4), observed were dif
 
 ### 3.4 Adjacency Matrix
 
-Due to the size and low density of the network, any adjacency matrices produced did not provide meaningful insight to the dataset (see \S 7.2 for plot).
+Due to the size and low density of the network, any adjacency matrices produced did not provide meaningful insight to the dataset (see \S 7.1 for the image).
 
 ## 4 Results
 
 Upon immediate inspection of the dataset, and more specifically the inspection of the induced subgraphs of randomly selected nodes, it became apparent that the network density was very low (Fig. 1).
 
-```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Induced Sub-Graphs of the Trust Network.", echo=FALSE}
-library(knitr)
-include_graphics("./images/induced_subgraphs.png")
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Induced sub-graphs of random nodes in the network.", echo=FALSE}
+knitr::include_graphics("./images/induced_subgraphs.png")
 ```
 
-However, this is not to indicate that there are not meaningful connections within the network.
+Furthermore, investigating the network as a whole and the communities detected by the `cluster_fast_greedy()` algorithm proved that making inference on the underlying structure of the network remained difficult at the network level (see Figures 2-3 for reference).
 
-```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Neighborhoods of Top both In-Degree and Out-Degree Nodes", echo=FALSE}
-library(knitr)
-# include_graphics("./images/top_nodes.png")
+```{r dpi=400, out.width="40%", fig.align="center", fig.cap="Graph of the full network.", echo=FALSE}
+knitr::include_graphics("./images/full_network.png")
 ```
 
-```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Neighborhoods of Top In-Degree Nodes", echo=FALSE}
-library(knitr)
-# include_graphics("./images/in_top_nodes.png")
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Graph of the full network with color-coded communities.", echo=FALSE}
+# knitr::include_graphics("./images/full_network_communities.png")
 ```
 
-```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Neighborhoods of Top Out-Degree Nodes", echo=FALSE}
-library(knitr)
-# include_graphics("./images/out_top_nodes.png")
+However, this is not to indicate that there are not meaningful connections within the network at the node level. Below are the plots (Figures 4-6) discussed above, these are plots of node-level neighborhoods, of 1 degree, for the 10 nodes with the most connections to, from, and both to and from the node, respectively. Notably, the red dots are the central node. The linear and circular patterns observed are artifacts of the default layout within the `plot()` function, as extended with the `igraph` package. Distance between two nodes directly corresponds to both the connectivity and density of the region. For example, in the neighborhood of node 18 (Fig. 4), we see a linear pattern with two clusters on either end and node 18, itself, is in between these two clusters. From this, we can infer that the user represented by node 18 has mutual trust with, what are essentially, two separate groups who are strictly unrelated with one another. Interestingly, taking a look at node 44 (Fig. 4), we notice that node 44 is within one of the clusters at the end of the linear pattern. This indicates that while the user represented by node 44 has mutual trust with those in the cluster at the other end of the pattern, there is not mutual trust between the users in either cluster. On the other hand, taking a look at an example of a circular pattern, nodes 645 (Fig. 3) is in the center of one single cluster. While any two users represented by nodes on opposite sides of the circular pattern may have mutual trust with one another, the distribution of those pairs is roughly even across the neighborhood. There are outliers in this trend, consider node 34 (Fig. 34), where certain nodes are significantly further on the perimeter in one spot, or to one side. However, in the case of node 34 at least, there are no arrows pointing towards node 34 from the outlier, which indicates that these nodes represents users that trust the user represented by node 34, but not vice versa.
+
+Interestingly, we see the trend of linear and circular patterns persists across all variety of degree measurements. This may indicate the presence of two separate trends in trust. A linear pattern may indicate a users subscription to two schools of thought on a particular matter, where they may or may not be more affiliated with one more than the other. A circular pattern may indicate that a certain user has a large presence, overall, within the network, or they may be central to a particular school of thought on a particular matter. Ultimately, while the network at large may not present any overarching trends, the presence of patterns at this level indicates that further research should be welcomed in this area.
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Neighborhoods of top in-degree and out-degree nodes", echo=FALSE}
+knitr::include_graphics("./images/top_nodes.png")
+```
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Neighborhoods of top in-degree nodes", echo=FALSE}
+knitr::include_graphics("./images/in_top_nodes.png")
+```
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Neighborhoods of top out-degree nodes", echo=FALSE}
+knitr::include_graphics("./images/out_top_nodes.png")
 ```
 
 
 ## 5 Conclusion
 
-* Summary of insights gained
-* Possible future directions for further analysis
+The Epinions Trust Network is fruitful evidence of patterns in trust in online forums, at the individual level. It is difficult to come by any meaningful evidence of structure at the network level. However, patterns displayed in node-level neighborhoods indicate that underlying structures do exist within this type of network, and there is information to be gained from studying them. Knowledge on this matter could certainly be extrapolated to other online forums and social media applications. Should data from this site be published on topics discussed by certain users or when trust was established between two users, further research would be highly suggested. Research on the correlation between each users particular use of language and the sub-neighborhoods they may or may not be apart of, or how a users trust network grows with relation to the topics they engage with, would likely yield interesting results.
 
 ## 6 References
 
@@ -96,15 +106,155 @@ library(knitr)
 
 ## 7 Appendix
 
-### 7.1 Code
+### 7.1 Additional Figures
 
-```{r eval=FALSE}
-
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Adjacency matrix for network nodes.", echo=FALSE}
+knitr::include_graphics("./images/raw_adjacency_matrix.png")
 ```
 
-### 7.2 Additional Figures
+### 7.2 Code
 
-```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Induced Sub-Graphs of the Trust Network.", echo=FALSE}
-library(knitr)
-include_graphics("./images/raw_adjacency_matrix.png")
+```{r eval=FALSE}
+#-----------------------------------------------------------------------------
+library(igraph)
+library(Matrix)
+
+# default margins
+def_marg <- c(5.1, 4.1, 4.1, 2.1)
+# no margins
+no_marg <- c(0, 0, 0, 0)
+#-----------------------------------------------------------------------------
+## Read in the raw edgelist and convert to igraph object
+epinions.data <- read.table("./data/soc-Epinions1.txt", sep="\t", header=FALSE, 
+                            col.names=c('from', 'to'), skip=4)
+epinions <- graph_from_data_frame(epinions.data, directed=TRUE)
+epinions
+#-----------------------------------------------------------------------------
+## Community detection + results
+# NB: cluster_fast_greedy() only operates on undirected graphs
+e.community <- cluster_fast_greedy(as.undirected(epinions))
+e.community
+
+largest_communities_sorted <- table(sort(sizes(e.community), decreasing=TRUE))[1:5]
+
+largest_communities_names <- names(largest_communities_sorted)
+
+cat("Length:", length(e.community), "\n")
+cat("5 Largest Sizes:", largest_communities_sorted, "\n")
+cat("Modularity:", modularity(e.community), "\n")
+#-----------------------------------------------------------------------------
+## Plot of all communities w/ color
+vertex_size <- 2
+edge_width <- 0.2
+
+layout <- layout_with_fr(epinions)
+
+V(epinions)$community <- e.community$membership
+n_comms <- length(unique(e.community$membership))
+set.seed(123)  # For reproducibility
+color_palette <- rainbow(n_comms)
+
+V(epinions)$color <- color_palette[V(epinions)$community]
+
+
+plot(epinions,
+     layout=layout,
+     vertex.size = vertex_size,
+     vertex.color = V(epinions)$color, 
+     vertex.label = NA,
+     vertex.frame.color = NA,
+     edge.color = "gray80",
+     edge.width = edge_width,
+     edge.arrow.size = 0.1,
+     edge.curved = 0.1)
+#-----------------------------------------------------------------------------
+## Plot the full network, simple
+plot(epinions,
+     layout=layout_with_fr,
+     vertex.size=2,
+     # === vertex label properties
+     vertex.label=NA,
+     # === edge properties
+     edge.arrow.size=0.5)
+#-----------------------------------------------------------------------------
+deg <- degree(epinions, mode="all")
+in_deg <- degree(epinions, mode="in")
+out_deg <- degree(epinions, mode="out")
+in_top_nodes <- V(epinions)[order(in_deg, decreasing=TRUE)[1:10]]
+out_top_nodes <- V(epinions)[order(out_deg, decreasing=TRUE)[1:10]]
+top_nodes <- V(epinions)[order(deg, decreasing=TRUE)[1:10]]
+#-----------------------------------------------------------------------------
+# High-out-Degree Nodes and Their Neighborhoods
+neighborhood <- ego(epinions, order=1, nodes=top_nodes)
+
+# Set up plotting layout
+par(mfrow=c(2, 5))
+
+# Plot each neighborhood
+for (i in seq_along(neighborhood)) {
+  # Extract the current neighborhood
+  subgraph <- induced_subgraph(epinions, neighborhood[[i]])
+  
+  # Set vertex sizes: larger for the central node
+  V(subgraph)$size <- ifelse(V(subgraph)$name == top_nodes[i]$name, 30, 3)
+  
+  # Set vertex colors: central node in red, others in sky blue
+  V(subgraph)$color <- ifelse(V(subgraph)$name == top_nodes[i]$name, "red", "skyblue")
+  
+  # Plot the subgraph
+  plot(subgraph,
+       vertex.size=V(subgraph)$size,
+       vertex.color=V(subgraph)$color,
+       vertex.label=NA,
+       main=paste("Neighborhood of Node", top_nodes[i]$name))
+#-----------------------------------------------------------------------------
+# High-out-Degree Nodes and Their Neighborhoods
+neighborhood <- ego(epinions, order=1, nodes=in_top_nodes)
+
+# Set up plotting layout
+par(mfrow=c(2, 5))
+
+# Plot each neighborhood
+for (i in seq_along(neighborhood)) {
+  # Extract the current neighborhood
+  subgraph <- induced_subgraph(epinions, neighborhood[[i]])
+  
+  # Set vertex sizes: larger for the central node
+  V(subgraph)$size <- ifelse(V(subgraph)$name == in_top_nodes[i]$name, 30, 3)
+  
+  # Set vertex colors: central node in red, others in sky blue
+  V(subgraph)$color <- ifelse(V(subgraph)$name == in_top_nodes[i]$name, "red", "skyblue")
+  
+  # Plot the subgraph
+  plot(subgraph,
+       vertex.size=V(subgraph)$size,
+       vertex.color=V(subgraph)$color,
+       vertex.label=NA,
+       main=paste("Neighborhood of Node", in_top_nodes[i]$name))
+}
+#-----------------------------------------------------------------------------
+# High-out-Degree Nodes and Their Neighborhoods
+neighborhood <- ego(epinions, order=1, nodes=out_top_nodes)
+
+# Set up plotting layout
+par(mfrow=c(2, 5))
+
+# Plot each neighborhood
+for (i in seq_along(neighborhood)) {
+  # Extract the current neighborhood
+  subgraph <- induced_subgraph(epinions, neighborhood[[i]])
+  
+  # Set vertex sizes: larger for the central node
+  V(subgraph)$size <- ifelse(V(subgraph)$name == out_top_nodes[i]$name, 30, 3)
+  
+  # Set vertex colors: central node in red, others in sky blue
+  V(subgraph)$color <- ifelse(V(subgraph)$name == out_top_nodes[i]$name, "red", "skyblue")
+  
+  # Plot the subgraph
+  plot(subgraph,
+       vertex.size=V(subgraph)$size,
+       vertex.color=V(subgraph)$color,
+       vertex.label=NA,
+       main=paste("Neighborhood of Node", out_top_nodes[i]$name))
+}
 ```

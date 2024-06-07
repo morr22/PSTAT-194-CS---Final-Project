@@ -138,7 +138,7 @@ edge_width <- 0.2
 
 layout <- layout_with_fr(epinions)
 
-
+V(epinions)$community <- e.community$membership
 n_comms <- length(unique(e.community$membership))
 set.seed(123)  # For reproducibility
 color_palette <- rainbow(n_comms)
@@ -277,17 +277,8 @@ plot(epinions,
      # === edge properties
      edge.arrow.size=0.5)
 ```
+
 ```{r}
-# default margins
-def_marg <- c(5.1, 4.1, 4.1, 2.1)
-# no margins
-no_marg <- c(0, 0, 0, 0)
-# read in the raw edgelist
-epinions.data <- read.table("~/Final/soc-Epinions1.txt", sep="\t", header=FALSE, 
-                            col.names=c('from', 'to'), skip=4)
-head(epinions.data)
-epinions <- graph_from_data_frame(epinions.data, directed=TRUE)
-epinions
 deg <- degree(epinions, mode="all")
 in_deg <- degree(epinions, mode="in")
 out_deg <- degree(epinions, mode="out")
@@ -306,6 +297,7 @@ plot(subgraph_top_nodes,
      edge.arrow.size=0.5,
      main="Subgraph of Top 10 Nodes with Most Edges")
 ```
+
 ```{r}
 # High-out-Degree Nodes and Their Neighborhoods
 neighborhood <- ego(epinions, order=1, nodes=top_nodes)
@@ -332,6 +324,7 @@ for (i in seq_along(neighborhood)) {
        main=paste("Neighborhood of Node", top_nodes[i]$name))
 }
 ```
+
 ```{r}
 # High-out-Degree Nodes and Their Neighborhoods
 neighborhood <- ego(epinions, order=1, nodes=in_top_nodes)
@@ -385,13 +378,7 @@ for (i in seq_along(neighborhood)) {
        vertex.label=NA,
        main=paste("Neighborhood of Node", out_top_nodes[i]$name))
 }
+```
 
-## Reorder nodes
-
-Ways to reorder:
-* Order of degree
-* etc.
-
-NB: Visualize adjacency matrix again
 
 
