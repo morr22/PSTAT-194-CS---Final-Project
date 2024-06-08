@@ -381,4 +381,71 @@ for (i in seq_along(neighborhood)) {
 ```
 
 
+```{r}
+#-----------------------------------------------------------------------------
+## Community detection + results
+# NB: cluster_fast_greedy() only operates on undirected graphs
+
+# Creates a subgraph of nodes sampled randomly
+set.seed(321)  # For reproducibility
+nodecount <- length(V(epinions)$name)
+percent <- 0.9 # remove % of original nodes
+
+epinions_mini <- delete_vertices(epinions, sample(V(epinions)$name,nodecount*percent))
+
+e.community <- cluster_fast_greedy(as.undirected(epinions_mini))
+e.community
+
+largest_communities_sorted <- table(sort(sizes(e.community), decreasing=TRUE))[1:5]
+
+largest_communities_names <- names(largest_communities_sorted)
+
+cat("Length:", length(e.community), "\n")
+cat("5 Largest Sizes:", largest_communities_sorted, "\n")
+cat("Modularity:", modularity(e.community), "\n")
+#-----------------------------------------------------------------------------
+## Plot of all communities w/ color
+vertex_size <- 2
+edge_width <- 0.2
+
+layout <- layout_with_fr(epinions_mini)
+
+V(epinions_mini)$community <- e.community$membership
+n_comms <- length(unique(e.community$membership))
+set.seed(123)  # For reproducibility
+color_palette <- sample(rainbow(n_comms))
+
+V(epinions_mini)$color <- color_palette[V(epinions_mini)$community]
+
+plot(epinions_mini, vertex.size=2,vertex.label=NA,edge.arrow.size=0.2,main="Community Detection Plot")
+
+# Plot only large communities in color
+color_palette[which(as.vector(table(e.community$membership) < 10))] <- "#CCCCCC"
+V(epinions_mini)$color <- color_palette[V(epinions_mini)$community]
+plot(epinions_mini, vertex.size=2,vertex.label=NA,edge.arrow.size=0.2,main="Isolated Users vs Large Communities")
+
+# Percent of users that are grey i.e. isolated dots
+# print(sum(as.vector(table(e.community$membership) < 10))/length(as.vector(table(e.community$membership) < 10)))
+#-----------------------------------------------------------------------------
+```
+
+```{r,echo=TRUE}
+#-----------------------------------------------------------------------------
+# Row sums = Number of outbound connections for each node
+# Col sums = Number of inbound connections for each node
+
+# Histogram demonstrates high concentration of points at < 20 trust/trusted
+hist(rowSums(as_adj(epinions)),xlim=c(0,40),breaks=1000, main="Outbound Connection Distribution (# of People Users Trusts)")
+hist(colSums(as_adj(epinions)),xlim=c(0,40),breaks=2000, main="Inbound Connection Distribution (# of People Trusting User)")
+
+# Density plots for showing approximate distribution
+# Similar to above plots but can include entire distribution since its on a log scale, not really necessary since most are near 0
+#plot(density(rowSums(as_adj(epinions))), main="Outbound Distribution (# of People They Trust)", log="x")
+#plot(density(colSums(as_adj(epinions))), main="Inbound Distribution (# of People Trusting Them)", log="x")
+
+plot(rowSums(as_adj(epinions)), colSums(as_adj(epinions)), ylab="Inbound (# of People Trusting Them)", xlab="Outbound (# of People They Trust)")
+
+#-----------------------------------------------------------------------------
+# Unrelated but worth a read: https://en.wikipedia.org/wiki/Friendship_paradox
+```
 
