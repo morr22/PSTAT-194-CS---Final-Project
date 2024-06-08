@@ -59,7 +59,11 @@ In plotting the neighborhoods for each of these groups (\S 4), observed were dif
 
 ### 3.4 Adjacency Matrix
 
-Due to the size and low density of the network, any adjacency matrices produced did not provide meaningful insight to the dataset (see \S 7.1 for the image).
+The adjacency matrix while hard to parse do to its large dimensions illustrates that most nodes have very few connections to nearby nodes, with a few nodes near the top having many connections spanning to nodes very far away index wise. These are likely the centers of various communities. 
+
+```{r dpi=400, out.width="50%", fig.align="center", fig.cap="Adjacency matrix for network nodes.", echo=FALSE}
+knitr::include_graphics("./images/raw_adjacency_matrix.png")
+```
 
 ## 4 Results
 
@@ -95,6 +99,25 @@ knitr::include_graphics("./images/in_top_nodes.png")
 knitr::include_graphics("./images/out_top_nodes.png")
 ```
 
+In general most nodes have relatively few connections with most having fewer than 5 in, and fewer than 5 out. This can be seen in the following histogram plots. There is a small minority of points that have a "celebrity" like status and have large trust followings often establishing communities around themselves.
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Histogram of inbound connections", echo=FALSE}
+knitr::include_graphics("./images/distinbound.png")
+```
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Hisstogram of outbound connections", echo=FALSE}
+knitr::include_graphics("./images/distoutbound.png")
+```
+
+We can see this in the sampled community segmentations where when only some subset of total nodes are sampled most clusters are fairly isolated producing clusters with sizes smaller than 5 often as small as just 1 node. These are isolated and in the second plot are shown in grey highlighting how the clusters are mostly a product of a few very popular nodes that have lots of connections. These form the center of their respective clusters and then branch off and expand through friends of friends. In this case due to the sampling of points many of the points due to how isolated and sparse they are can't be grouped into the cluster as their tenuous chain to one of the center communities was removed. This emphasizes how sparse this graph is and how most users only have 1 or 2 connections.
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Segmentation with all clusters", echo=FALSE}
+knitr::include_graphics("./images/community1.png")
+```
+
+```{r dpi=400, out.width="100%", fig.align="center", fig.cap="Segmentation with only large clusters", echo=FALSE}
+knitr::include_graphics("./images/community2.png")
+```
 
 ## 5 Conclusion
 
@@ -132,7 +155,15 @@ epinions
 #-----------------------------------------------------------------------------
 ## Community detection + results
 # NB: cluster_fast_greedy() only operates on undirected graphs
-e.community <- cluster_fast_greedy(as.undirected(epinions))
+
+# Creates a subgraph of nodes sampled randomly
+set.seed(321)  # For reproducibility
+nodecount <- length(V(epinions)$name)
+percent <- 0.9 # remove % of original nodes
+
+epinions_mini <- delete_vertices(epinions, sample(V(epinions)$name,nodecount*percent))
+
+e.community <- cluster_fast_greedy(as.undirected(epinions_mini))
 e.community
 
 largest_communities_sorted <- table(sort(sizes(e.community), decreasing=TRUE))[1:5]
@@ -147,26 +178,24 @@ cat("Modularity:", modularity(e.community), "\n")
 vertex_size <- 2
 edge_width <- 0.2
 
-layout <- layout_with_fr(epinions)
+layout <- layout_with_fr(epinions_mini)
 
-V(epinions)$community <- e.community$membership
+V(epinions_mini)$community <- e.community$membership
 n_comms <- length(unique(e.community$membership))
 set.seed(123)  # For reproducibility
-color_palette <- rainbow(n_comms)
+color_palette <- sample(rainbow(n_comms))
 
-V(epinions)$color <- color_palette[V(epinions)$community]
+V(epinions_mini)$color <- color_palette[V(epinions_mini)$community]
 
+plot(epinions_mini, vertex.size=2,vertex.label=NA,edge.arrow.size=0.2,main="Community Detection Plot")
 
-plot(epinions,
-     layout=layout,
-     vertex.size = vertex_size,
-     vertex.color = V(epinions)$color, 
-     vertex.label = NA,
-     vertex.frame.color = NA,
-     edge.color = "gray80",
-     edge.width = edge_width,
-     edge.arrow.size = 0.1,
-     edge.curved = 0.1)
+# Plot only large communities in color
+color_palette[which(as.vector(table(e.community$membership) < 10))] <- "#CCCCCC"
+V(epinions_mini)$color <- color_palette[V(epinions_mini)$community]
+plot(epinions_mini, vertex.size=2,vertex.label=NA,edge.arrow.size=0.2,main="Isolated Users vs Large Communities")
+
+# Percent of users that are grey i.e. isolated dots
+# print(sum(as.vector(table(e.community$membership) < 10))/length(as.vector(table(e.community$membership) < 10)))
 #-----------------------------------------------------------------------------
 ## Plot the full network, simple
 plot(epinions,
@@ -257,4 +286,21 @@ for (i in seq_along(neighborhood)) {
        vertex.label=NA,
        main=paste("Neighborhood of Node", out_top_nodes[i]$name))
 }
+#-----------------------------------------------------------------------------
+# Row sums = Number of outbound connections for each node
+# Col sums = Number of inbound connections for each node
+
+# Histogram demonstrates high concentration of points at < 20 trust/trusted
+hist(rowSums(as_adj(epinions)),xlim=c(0,40),breaks=1000, main="Outbound Connection Distribution (# of People Users Trusts)")
+hist(colSums(as_adj(epinions)),xlim=c(0,40),breaks=2000, main="Inbound Connection Distribution (# of People Trusting User)")
+
+# Density plots for showing approximate distribution
+# Similar to above plots but can include entire distribution since its on a log scale, not really necessary since most are near 0
+#plot(density(rowSums(as_adj(epinions))), main="Outbound Distribution (# of People They Trust)", log="x")
+#plot(density(colSums(as_adj(epinions))), main="Inbound Distribution (# of People Trusting Them)", log="x")
+
+plot(rowSums(as_adj(epinions)), colSums(as_adj(epinions)), ylab="Inbound (# of People Trusting Them)", xlab="Outbound (# of People They Trust)")
+
+#-----------------------------------------------------------------------------
+# Unrelated but worth a read: https://en.wikipedia.org/wiki/Friendship_paradox
 ```
